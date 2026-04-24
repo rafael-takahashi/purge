@@ -1,6 +1,8 @@
 const siteKey = window.location.hostname;
 const undoStack = [];
 let enabled = true;
+let shiftHeld = false;
+let currentHovered = null;
 
 function injectHighlightStyle() {
   const style = document.createElement('style');
@@ -84,16 +86,32 @@ function onMouseOver(event) {
   const el = event.target;
   const tag = el.tagName.toLowerCase();
   if (tag === 'html' || tag === 'body') return;
-  el.classList.add('dom-remover-highlight');
+  currentHovered = el;
+  if (shiftHeld) el.classList.add('dom-remover-highlight');
 }
 
 function onMouseOut(event) {
   event.target.classList.remove('dom-remover-highlight');
+  currentHovered = null;
+}
+
+function onKeyDown(event) {
+  if (event.key !== 'Shift' || shiftHeld) return;
+  shiftHeld = true;
+  if (enabled && currentHovered) currentHovered.classList.add('dom-remover-highlight');
+}
+
+function onKeyUp(event) {
+  if (event.key !== 'Shift') return;
+  shiftHeld = false;
+  document.querySelectorAll('.dom-remover-highlight').forEach(el =>
+    el.classList.remove('dom-remover-highlight')
+  );
 }
 
 function onClick(event) {
   if (!enabled) return;
-  if (!event.altKey) return;
+  if (!event.shiftKey) return;
   const el = event.target;
   const tag = el.tagName.toLowerCase();
   if (tag === 'html' || tag === 'body') return;
@@ -141,5 +159,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   enabled = await getEnabled();
   document.addEventListener('mouseover', onMouseOver);
   document.addEventListener('mouseout', onMouseOut);
+  document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('keyup', onKeyUp);
   document.addEventListener('click', onClick, true);
 })();

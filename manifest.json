@@ -6,7 +6,7 @@
     "32": "icons/purge-logo.svg",
     "64": "icons/purge-logo.svg"
   },
-  "description": "Remove DOM elements persistently from webpages via Alt+Click.",
+  "description": "Remove DOM elements persistently from webpages via Shift+Click.",
   "permissions": [
     "storage",
     "activeTab",

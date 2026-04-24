@@ -30,7 +30,7 @@ The extension is composed of three distinct layers that communicate via the brow
 
 **Content Script (`content.js`)**
 - Injected into every page on document load
-- Responsible for: hover highlighting, Alt+Click deletion, applying stored deletions on load, in-memory undo stack management
+- Responsible for: hover highlighting, Shift+Click deletion, applying stored deletions on load, in-memory undo stack management
 - Does not directly render UI; communicates state to the popup on request
 
 **Popup (`popup.html` + `popup.js`)**
@@ -163,7 +163,7 @@ On `document_idle`:
 2. Call `getSelectorsForSite(siteKey)`
 3. For each stored selector, query the DOM and remove matching elements
 4. Attach `mouseover` and `mouseout` event listeners for hover highlighting
-5. Attach a `click` event listener gated on `event.altKey`
+5. Attach a `click` event listener gated on `event.shiftKey`
 6. Initialize an empty in-memory undo stack: `const undoStack = []`
 
 ### Hover Highlighting
@@ -181,11 +181,11 @@ On `document_idle`:
 }
 ```
 
-### Alt+Click Deletion
+### Shift+Click Deletion
 
 ```
 on click event:
-  if event.altKey is false → return (ignore click)
+  if event.shiftKey is false → return (ignore click)
   if target is html or body → return (blocked)
   event.preventDefault()
   event.stopPropagation()
@@ -246,7 +246,7 @@ On open:
 - A checkbox toggle at the top of the popup
 - Reflects the current `enabled` state from the content script
 - On change: sends `{ action: "SET_ENABLED", value: boolean }` to the content script
-- When disabled: hover highlight is removed from any currently highlighted element; Alt+Click does nothing
+- When disabled: hover highlight is removed from any currently highlighted element; Shift+Click does nothing
 - When re-enabled: hover highlighting resumes immediately on next `mouseover`
 - Does **not** affect stored deletions applied on page load — those always run regardless of toggle state
 - State persists across page navigations via `browser.storage.local` under key `__enabled__`
@@ -430,7 +430,7 @@ async function handleReset() {
 
 ### Prevent Deletion of `html` and `body`
 
-In the Alt+Click handler, check before proceeding:
+In the Shift+Click handler, check before proceeding:
 
 ```js
 const blocked = ['html', 'body'];
@@ -504,5 +504,5 @@ If a selector matches more than one element:
 
 ### Blocked Elements
 
-- Alt+Click on `<body>`: verify no deletion occurs and no error is thrown
-- Alt+Click on `<html>`: same as above
+- Shift+Click on `<body>`: verify no deletion occurs and no error is thrown
+- Shift+Click on `<html>`: same as above
