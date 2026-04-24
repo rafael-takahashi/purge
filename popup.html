@@ -73,6 +73,43 @@
       background: #fff5f5;
     }
 
+    .confirm-zone {
+      display: none;
+      padding: 10px 16px;
+      border-top: 1px solid #fed7d7;
+      background: #fff5f5;
+    }
+
+    .confirm-zone.visible {
+      display: block;
+    }
+
+    .confirm-zone p {
+      font-size: 12px;
+      color: #c53030;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .confirm-zone .confirm-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    #btn-confirm-reset {
+      background: #c53030;
+      color: #fff;
+      border-color: #c53030;
+    }
+
+    #btn-confirm-reset:hover:not(:disabled) {
+      background: #9b2c2c;
+    }
+
+    #btn-cancel-reset {
+      flex: 1;
+    }
+
     .toggle-bar {
       display: flex;
       align-items: center;
@@ -143,6 +180,13 @@
   <div class="actions">
     <button id="btn-undo" disabled>Undo Last</button>
     <button id="btn-reset" disabled>Reset Site</button>
+  </div>
+  <div class="confirm-zone" id="confirm-zone">
+    <p>Remove all deletion rules for this site and reload?</p>
+    <div class="confirm-buttons">
+      <button id="btn-cancel-reset">Cancel</button>
+      <button id="btn-confirm-reset">Reset</button>
+    </div>
   </div>
   <script src="storage.js"></script>
   <script src="popup.js"></script>

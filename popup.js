@@ -6,6 +6,9 @@ const deletionCountEl = document.getElementById('deletion-count');
 const btnUndo = document.getElementById('btn-undo');
 const btnReset = document.getElementById('btn-reset');
 const toggleEnabled = document.getElementById('toggle-enabled');
+const confirmZone = document.getElementById('confirm-zone');
+const btnConfirmReset = document.getElementById('btn-confirm-reset');
+const btnCancelReset = document.getElementById('btn-cancel-reset');
 
 async function getActiveTab() {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
@@ -59,13 +62,22 @@ btnUndo.addEventListener('click', async () => {
   }
 });
 
-btnReset.addEventListener('click', async () => {
-  const confirmed = window.confirm(
-    `This will remove all deletion rules for ${siteKey} and reload the page. Continue?`
-  );
-  if (!confirmed) return;
-
+btnReset.addEventListener('click', () => {
+  confirmZone.classList.add('visible');
   btnReset.disabled = true;
+  btnUndo.disabled = true;
+});
+
+btnCancelReset.addEventListener('click', () => {
+  confirmZone.classList.remove('visible');
+  const deletionCount = parseInt(deletionCountEl.textContent, 10) || 0;
+  btnReset.disabled = deletionCount === 0;
+  btnUndo.disabled = deletionCount === 0;
+});
+
+btnConfirmReset.addEventListener('click', async () => {
+  btnConfirmReset.disabled = true;
+  btnCancelReset.disabled = true;
   try {
     await browser.tabs.sendMessage(activeTab.id, { action: 'RESET' });
   } catch {
