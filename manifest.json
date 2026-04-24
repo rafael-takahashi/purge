@@ -2,6 +2,10 @@
   "manifest_version": 3,
   "name": "Purge",
   "version": "1.0.0",
+  "icons": {
+    "32": "icons/purge-logo.svg",
+    "64": "icons/purge-logo.svg"
+  },
   "description": "Remove DOM elements persistently from webpages via Alt+Click.",
   "permissions": [
     "storage",
