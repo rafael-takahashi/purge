@@ -1,6 +1,8 @@
 const siteKey = window.location.hostname;
 const undoStack = [];
-let enabled = true;
+let deleteEnabled = true;
+let showHidden = false;
+let hiddenElements = [];
 let shiftHeld = false;
 let currentHovered = null;
 
@@ -49,6 +51,7 @@ function getNthChildPath(el) {
 }
 
 async function applyStoredDeletions() {
+  hiddenElements = [];
   const records = await getSelectorsForSite(siteKey);
   for (const record of records) {
     try {
@@ -57,21 +60,38 @@ async function applyStoredDeletions() {
         console.warn(`[DOM Remover] Selector not found: ${record.selector}`);
         continue;
       }
-      elements.forEach(el => el.remove());
+      elements.forEach(el => {
+        hiddenElements.push({ element: el, parent: el.parentNode, nextSibling: el.nextSibling });
+        el.remove();
+      });
     } catch (e) {
       console.warn(`[DOM Remover] Invalid selector: ${record.selector}`, e);
     }
   }
 }
 
+function restoreHiddenElements() {
+  for (const { element, parent, nextSibling } of hiddenElements) {
+    if (nextSibling) {
+      parent.insertBefore(element, nextSibling);
+    } else {
+      parent.appendChild(element);
+    }
+  }
+  hiddenElements = [];
+}
+
 async function handleUndo() {
   if (undoStack.length === 0) return (await getSelectorsForSite(siteKey)).length;
-  const { element, parent, nextSibling } = undoStack.pop();
+  const entry = undoStack.pop();
+  const { element, parent, nextSibling } = entry;
   if (nextSibling) {
     parent.insertBefore(element, nextSibling);
   } else {
     parent.appendChild(element);
   }
+  const idx = hiddenElements.indexOf(entry);
+  if (idx !== -1) hiddenElements.splice(idx, 1);
   await removeLastSelectorForSite(siteKey);
   return (await getSelectorsForSite(siteKey)).length;
 }
@@ -82,7 +102,7 @@ async function handleReset() {
 }
 
 function onMouseOver(event) {
-  if (!enabled) return;
+  if (!deleteEnabled || showHidden) return;
   const el = event.target;
   const tag = el.tagName.toLowerCase();
   if (tag === 'html' || tag === 'body') return;
@@ -98,7 +118,7 @@ function onMouseOut(event) {
 function onKeyDown(event) {
   if (event.key !== 'Shift' || shiftHeld) return;
   shiftHeld = true;
-  if (enabled && currentHovered) currentHovered.classList.add('dom-remover-highlight');
+  if (deleteEnabled && !showHidden && currentHovered) currentHovered.classList.add('dom-remover-highlight');
 }
 
 function onKeyUp(event) {
@@ -110,7 +130,7 @@ function onKeyUp(event) {
 }
 
 function onClick(event) {
-  if (!enabled) return;
+  if (!deleteEnabled || showHidden) return;
   if (!event.shiftKey) return;
   const el = event.target;
   const tag = el.tagName.toLowerCase();
@@ -121,12 +141,14 @@ function onClick(event) {
   const selector = generateSelector(el);
   const parent = el.parentNode;
   const nextSibling = el.nextSibling;
-  undoStack.push({ element: el, selector, parent, nextSibling });
+  const entry = { element: el, selector, parent, nextSibling };
+  undoStack.push(entry);
+  hiddenElements.push(entry);
   el.remove();
   addSelectorForSite(siteKey, { selector });
 }
 
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.action === 'UNDO') {
     handleUndo().then(count => sendResponse({ success: true, deletionCount: count }));
     return true;
@@ -137,26 +159,37 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   if (message.action === 'GET_STATE') {
     getSelectorsForSite(siteKey).then(records =>
-      sendResponse({ success: true, deletionCount: records.length, undoStackSize: undoStack.length, enabled })
+      sendResponse({ success: true, deletionCount: records.length, undoStackSize: undoStack.length, deleteEnabled, showHidden })
     );
     return true;
   }
-  if (message.action === 'SET_ENABLED') {
-    enabled = message.value;
-    if (!enabled) {
+  if (message.action === 'SET_SHOW_HIDDEN') {
+    showHidden = message.value;
+    if (showHidden) {
+      restoreHiddenElements();
+    } else {
+      applyStoredDeletions();
+    }
+    setShowHidden(showHidden).then(() => sendResponse({ success: true, showHidden }));
+    return true;
+  }
+  if (message.action === 'SET_DELETE_ENABLED') {
+    deleteEnabled = message.value;
+    if (!deleteEnabled) {
       document.querySelectorAll('.dom-remover-highlight').forEach(el =>
         el.classList.remove('dom-remover-highlight')
       );
     }
-    setEnabled(enabled).then(() => sendResponse({ success: true, enabled }));
+    setDeleteEnabled(deleteEnabled).then(() => sendResponse({ success: true, deleteEnabled }));
     return true;
   }
 });
 
 (async function init() {
   injectHighlightStyle();
-  await applyStoredDeletions();
-  enabled = await getEnabled();
+  showHidden = await getShowHidden();
+  deleteEnabled = await getDeleteEnabled();
+  if (!showHidden) await applyStoredDeletions();
   document.addEventListener('mouseover', onMouseOver);
   document.addEventListener('mouseout', onMouseOut);
   document.addEventListener('keydown', onKeyDown);

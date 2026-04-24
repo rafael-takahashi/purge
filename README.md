@@ -11,6 +11,8 @@ Deletions are saved per website and reapplied automatically on every visit, so r
 - Deletions persist across reloads, scoped per website
 - Undo the last deletion in the current session
 - Reset all deletions for the current site
+- Toggle **Show Hidden Elements** to temporarily reveal purged elements without affecting stored rules
+- Toggle **Shift+Click to Delete** to pause deletion mode without showing hidden elements
 
 ## How It Works
 
@@ -25,6 +27,15 @@ No cross-site data is ever shared or applied. Rules for `example.com` only run o
 | Remove an element | `Shift+Click` the element |
 | Undo last removal | Open the extension popup and click **Undo Last** |
 | Clear all rules for this site | Open the extension popup and click **Reset Site** |
+| Temporarily show purged elements | Open the popup and enable **Show Hidden Elements** |
+| Pause deletion mode | Open the popup and disable **Shift+Click to Delete** |
+
+## Popup Toggles
+
+| Toggle | Effect |
+|---|---|
+| **Shift+Click to Delete** | Enables Shift+Click deletion and hover highlighting. Disabled automatically when Show Hidden Elements is on. |
+| **Show Hidden Elements** | Restores all purged elements to the DOM without touching storage. Re-disabling re-hides them. Blocks deletion while active. |
 
 ## Permissions
 

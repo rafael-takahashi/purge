@@ -3,8 +3,8 @@
   "name": "Purge",
   "version": "1.0.0",
   "icons": {
-    "32": "icons/purge-logo.svg",
-    "64": "icons/purge-logo.svg"
+    "32": "purge-logo.svg",
+    "64": "purge-logo.svg"
   },
   "description": "Remove DOM elements persistently from webpages via Shift+Click.",
   "permissions": [

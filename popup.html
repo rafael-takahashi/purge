@@ -163,13 +163,31 @@
     .toggle input:checked + .toggle-track::after {
       transform: translateX(16px);
     }
+
+    .toggle-bar.locked {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .toggle-bar.locked .toggle,
+    .toggle-bar.locked .toggle-track {
+      pointer-events: none;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
-  <div class="toggle-bar">
-    <span class="toggle-label">Purging Enabled</span>
+  <div class="toggle-bar" id="toggle-enabled-bar">
+    <span class="toggle-label">Shift+Click to Delete</span>
     <label class="toggle">
       <input type="checkbox" id="toggle-enabled" checked>
+      <span class="toggle-track"></span>
+    </label>
+  </div>
+  <div class="toggle-bar">
+    <span class="toggle-label">Show Hidden Elements</span>
+    <label class="toggle">
+      <input type="checkbox" id="toggle-purge-disabled">
       <span class="toggle-track"></span>
     </label>
   </div>
