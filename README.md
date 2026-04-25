@@ -42,3 +42,5 @@ No cross-site data is ever shared or applied. Rules for `example.com` only run o
 - `storage` — saves deletion rules locally in your browser
 - `activeTab` — reads the current page's hostname to scope rules correctly
 - `scripting` — injects the content script that applies stored rules on page load
+
+[Install Purge on Firefox](https://addons.mozilla.org/en-US/firefox/addon/purge/)
